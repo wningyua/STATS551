@@ -1,0 +1,93 @@
+---
+title: "HW1_551_code"
+author: "Ningyuan Wang"
+date: "1/28/2020"
+output:
+  pdf_document: 
+     latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1.1
+
+```{r}
+# Visualization
+y <- seq(-15,15,0.1)
+plot(y, 1/(4*sqrt(2*pi))*{exp(-1/8*(y-1)^2)+exp(-1/8*(y-2)^2)}, ylab = "Posterior Density", type= "l")
+
+```
+
+## Question 2.3
+```{r }
+n1 = 10; n2 = 100
+set.seed(551)
+# with n = 10
+s1 =  rnorm(n1, mean = (180+600*n1)/(4*n1+1) , sd = sqrt(1600/(1+4*n1)))
+s1_pred = rnorm(n1, mean = (600*n1+180)/(1+4*n1), sd = sqrt(400+1600/(1+4*n1)))
+
+
+interval1 = quantile(s1, c(0.025, 0.975 )) # (141.6908 158.3847  )
+interval1_pred = quantile(s1_pred ,c(0.025, 0.975 ) ) # (125.6392 189.1946 )
+
+# with n = 100
+s2 = rnorm(n2, mean = (180+600*n2)/(4*n2+1) , sd = sqrt(1600/(1+4*n2)))
+s2_pred = rnorm(n2, mean = (600*n2+180)/(1+4*n2), sd = sqrt(400+1600/(1+4*n2)))
+
+
+interval2 = quantile(s2, c(0.025, 0.975 ))  #(146.2509 154.4785 ) 
+interval2_pred = quantile(s2_pred, c(0.025, 0.975 )) # (111.5976 194.3860 )
+
+```
+
+## Question 3
+```{r}
+# set up prior and posterior function 
+f.prior = function(theta){
+  if (theta>=0 && theta<0.25){
+    p_theta = 8*theta
+  } else if(theta>= 0.25 && theta<=1){
+    p_theta = 8/3 - 8/3 * theta
+  } else{
+    p_theta = 0
+  }
+  return(p_theta)
+}
+
+f.posterior = function(n, y, theta){
+  choose(n, y) * theta^y * (1-theta)^(n-y) * f.prior(theta)
+}
+
+# a sequence of theta between 0 and 1
+m = 1000
+theta_seq = seq(0, 1, length.out = m) 
+dim(theta_seq) <- c(m, 1)
+# compute posterior density for each theta in the sequency
+posterior = c()
+for (i in 1:m){
+posterior[i] = f.posterior(n = 500, y = 285, theta = theta_seq[i])
+}
+
+# unnormalized plot
+plot(theta_seq, posterior,ylab = "Posterior Probability", main = "Unnormalized Posterior Density Function", type= "l")
+
+
+# normalized posterior density function
+plot(theta_seq, posterior*m/sum(posterior),ylab = "Posterior Probability", main = "Normalized Posterior Density Function", type= "l") 
+
+
+# sample 10000 draws of theta from the posterior density and plot a histogram of the draws
+mysamples = sample(theta_seq, 10000, replace = TRUE, prob = posterior/sum(posterior))
+hist(mysamples, freq = FALSE, xlim = c(0, 1))
+lines(theta_seq, posterior*m/sum(posterior), col = "red") 
+
+
+
+
+
+
+```
+
+
